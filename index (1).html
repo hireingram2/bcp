@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>BCP Scorecard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080F0B;--surf:#0E1810;--card:#131F15;--brd:#1C2E1F;--teal:#006B7A;--teal-l:#00A0B8;--amber:#FFB74D;--coral:#FF6F61;--green:#52C788;--purple:#A78BFA;--text:#D0EAD8;--muted:#486055;--muted2:#526B5A;--font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;--disp:'Bebas Neue',sans-serif;--r:10px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;-webkit-font-smoothing:antialiased}
+.screen{display:none;max-width:480px;margin:0 auto;padding:0 16px 80px}.screen.active{display:block}
+#ls{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:12px;letter-spacing:3px;color:var(--muted);flex-direction:column;gap:12px}
+.spin{width:24px;height:24px;border:2px solid var(--brd);border-top-color:var(--teal-l);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#setup-screen,#reg-screen{padding-top:40px}
+.ob-tag{font-size:11px;letter-spacing:3px;color:var(--muted);margin-bottom:6px}
+.ob-title{font-family:var(--disp);font-size:52px;color:var(--amber);letter-spacing:2px;margin-bottom:8px;line-height:1}
+.ob-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:28px}
+.ob-card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:16px;margin-bottom:10px}
+.ob-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--teal);color:#fff;font-size:10px;font-weight:700;margin-right:8px}
+.ob-card h3{font-size:12px;font-weight:600;margin-bottom:8px;display:flex;align-items:center}.ob-card p{font-size:13px;color:var(--muted);line-height:1.6}
+.ob-card a{color:var(--teal-l);text-decoration:none}.ob-card code{background:var(--surf);color:var(--teal-l);padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:11px}
+.invite-box{background:var(--card);border:1px solid rgba(255,183,77,.3);border-radius:var(--r);padding:14px 16px;margin-bottom:20px}
+.invite-box p:first-child{font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:4px}
+.invite-box p:last-child{font-size:18px;font-weight:600;color:var(--amber)}
+.fg{margin-bottom:14px}.fl{font-size:11px;color:var(--muted);margin-bottom:7px;letter-spacing:1px;display:flex;justify-content:space-between}.fl em{color:var(--teal-l);font-style:normal;font-size:11px;letter-spacing:0}
+input[type=text],input[type=url],input[type=date]{width:100%;background:var(--surf);border:1px solid var(--brd);color:var(--text);padding:12px 14px;border-radius:8px;font-family:var(--font);font-size:14px;outline:none;transition:border-color .15s;-webkit-appearance:none}
+input[type=number]{width:100%;background:var(--surf);border:1px solid var(--brd);color:var(--amber);padding:9px 4px;border-radius:8px;font-family:var(--mono);font-size:20px;text-align:center;outline:none;-webkit-appearance:none}
+input[type=date]{color-scheme:dark}
+input:focus{border-color:var(--teal)}input::placeholder{color:var(--muted)}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:13px 22px;border-radius:8px;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;border:none;width:100%;transition:opacity .15s;margin-top:4px}
+.btn:active{opacity:.8}.btn-p{background:var(--teal);color:#fff}.btn-g{background:var(--surf);color:var(--muted);border:1px solid var(--brd)}
+.btn-sm{width:auto;padding:9px 16px;font-size:13px;margin-top:0}
+.hdr{padding:20px 0 0;border-bottom:1px solid var(--brd);margin-bottom:16px}
+.hero{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px}
+.hero-label{font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:4px}
+.hero-bcp{font-family:var(--disp);font-size:54px;color:var(--amber);line-height:1;letter-spacing:1px}
+.hero-day{font-family:var(--disp);font-size:28px;color:var(--teal-l);text-align:right;line-height:1}
+.hero-date{font-size:12px;color:var(--muted);text-align:right;margin-top:3px}
+.prog-wrap{margin-bottom:14px}
+.prog-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px}.prog-meta span{color:var(--teal-l)}
+.prog{height:4px;background:var(--brd);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--teal),var(--amber));transition:width .5s}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.badge{font-size:11px;padding:4px 11px;border-radius:20px;font-weight:600}
+.ba{background:rgba(255,183,77,.14);color:var(--amber);border:1px solid rgba(255,183,77,.28)}
+.bg2{background:rgba(82,199,136,.14);color:var(--green);border:1px solid rgba(82,199,136,.28)}
+.bt{background:rgba(0,160,184,.14);color:var(--teal-l);border:1px solid rgba(0,160,184,.28)}
+.tabs{display:flex}.tab{flex:1;padding:10px 0;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;font-size:12px;font-family:var(--font);font-weight:500;transition:color .15s}
+.tab.on{color:var(--amber);border-bottom-color:var(--amber)}
+/* Sensei assignments card */
+.sensei-card{background:var(--card);border:1px solid rgba(167,139,250,.3);border-radius:var(--r);padding:0;margin-bottom:12px;overflow:hidden}
+.sensei-card-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(167,139,250,.07);border-bottom:1px solid rgba(167,139,250,.2)}
+.sc-hdr-left{display:flex;align-items:center;gap:8px}
+.sc-hdr-icon{font-size:16px}
+.sc-hdr-title{font-size:13px;font-weight:600;color:var(--text)}
+.sc-hdr-name{font-size:11px;color:var(--purple)}
+.sc-hdr-count{font-size:11px;font-weight:600;color:var(--purple);background:rgba(167,139,250,.15);padding:3px 10px;border-radius:20px;border:1px solid rgba(167,139,250,.25)}
+.sc-hdr-done{color:var(--green);background:rgba(82,199,136,.15);border-color:rgba(82,199,136,.25)}
+.sc-items{padding:8px}
+.sc-item{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:8px;margin-bottom:6px;background:var(--surf);border:1px solid var(--brd);transition:background .15s}
+.sc-item:last-child{margin-bottom:0}
+.sc-item.done-item{opacity:.6}
+.sc-check{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--brd);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;touch-action:manipulation;transition:all .15s;margin-top:1px}
+.sc-check.checked{background:var(--green);border-color:var(--green);color:#fff}
+.sc-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px}
+.sc-info{flex:1;min-width:0}
+.sc-title{font-size:13px;font-weight:600;margin-bottom:2px;line-height:1.3}
+.sc-body{font-size:11px;color:var(--muted);line-height:1.5;margin-top:2px}
+.sc-url{font-size:10px;color:var(--teal-l);text-decoration:none;display:block;margin-top:4px}
+.sc-done-lbl{font-size:10px;color:var(--green);margin-top:3px}
+/* Check-in cards */
+.card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:16px}
+.f{margin-bottom:16px}.fl2{font-size:11px;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}.fl2 em{color:var(--teal-l);font-style:normal;font-size:11px}
+.tog-pair{display:flex;gap:8px}
+.tog{flex:1;padding:13px 8px;border:1px solid var(--brd);background:var(--surf);color:var(--muted);border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--font);transition:all .15s;touch-action:manipulation;min-height:44px}
+.tog.y{background:rgba(82,199,136,.14);color:var(--green);border-color:rgba(82,199,136,.35)}
+.tog.n{background:rgba(255,111,97,.14);color:var(--coral);border-color:rgba(255,111,97,.35)}
+.stp{display:flex;align-items:center;gap:10px}
+.sb{width:44px;height:44px;background:var(--surf);border:1px solid var(--brd);border-radius:8px;color:var(--text);cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation;transition:background .12s;font-family:var(--font)}
+.sb:active{background:var(--brd)}
+.sv{flex:1;background:var(--surf);border:1px solid var(--brd);border-radius:8px;color:var(--amber);font-family:var(--mono);font-size:20px;text-align:center;padding:10px 4px;outline:none}
+.sv:focus{border-color:var(--teal)}
+.su{font-size:13px;color:var(--muted);flex-shrink:0;min-width:30px}
+.pbar{height:4px;background:var(--brd);border-radius:2px;margin-top:8px;overflow:hidden}.pbf{height:100%;border-radius:2px;transition:width .3s,background .3s}
+.ptxt{font-size:11px;color:var(--muted);margin-top:4px}
+.div{height:1px;background:var(--brd);margin:12px 0}
+.bcp-ft{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.bcp-ft-lbl{font-size:12px;color:var(--muted);letter-spacing:1px}.bcp-ft-val{font-family:var(--disp);font-size:42px;color:var(--amber);line-height:1}
+.hr{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;margin-bottom:6px;border-radius:8px;background:var(--card);border:1px solid var(--brd)}
+.hr.td{border-color:rgba(0,160,184,.4);background:rgba(0,160,184,.07)}
+.hr-lbl{font-size:13px}.hr-tag{font-size:10px;color:var(--teal-l);margin-left:6px}
+.hr-right{display:flex;align-items:center;gap:8px}.hr-dots{display:flex;gap:4px;align-items:center}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}.hr-bcp{font-family:var(--mono);font-size:13px}
+.hist-legend{display:flex;gap:16px;margin-bottom:14px;font-size:11px;color:var(--muted)}
+.ld{display:flex;align-items:center;gap:5px}
+.rec-row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--brd)}.rec-row:last-child{border-bottom:none}
+.rec-meta{font-size:11px;color:var(--muted);letter-spacing:.5px}.rec-sub{font-size:11px;color:var(--coral);margin-top:3px}
+.rec-val{font-family:var(--disp);font-size:34px;color:var(--amber);line-height:1}
+.rec-ts{font-family:var(--mono);font-size:13px;color:var(--amber)}
+.rec-right{display:flex;align-items:center;gap:10px}
+.edit-btn{background:none;border:1px solid var(--brd);color:var(--muted);cursor:pointer;font-size:11px;padding:5px 10px;border-radius:6px;font-family:var(--font);touch-action:manipulation}
+.ie{background:var(--surf);border:1px solid var(--teal);border-radius:8px;padding:14px;margin-bottom:12px}
+.ie-lbl{font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:1px}
+.ie-row{display:flex;gap:8px;align-items:center}
+.brk-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;color:var(--muted)}.brk-val{font-family:var(--mono);color:var(--text)}
+.sensei-footer{text-align:center;padding:24px 0 8px;border-top:1px solid var(--brd);margin-top:8px}
+.sensei-footer a{color:var(--teal-l);text-decoration:none;font-size:13px;font-weight:500}
+.reset-area{text-align:center;margin-top:20px}
+.reset-confirm{text-align:center;margin-top:10px;font-size:13px;color:var(--coral)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--brd);border-radius:8px;padding:9px 18px;font-size:12px;color:var(--muted);pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap;z-index:100}
+.toast.show{opacity:1}.toast.saving{color:var(--amber)}.toast.saved{color:var(--green)}.toast.err{color:var(--coral)}
+@media(max-width:400px){.hero-bcp{font-size:44px}.hero-day{font-size:24px}}
+</style>
+</head>
+<body>
+
+<div id="ls"><div class="spin"></div><span>Loading scorecard</span></div>
+
+<!-- Firebase setup -->
+<div id="setup-screen" class="screen">
+  <p class="ob-tag">BCP</p><h1 class="ob-title">Scorecard</h1>
+  <p class="ob-sub">One-time setup — connect your Firebase database.</p>
+  <div class="ob-card"><h3><span class="ob-num">1</span>Create Firebase project</h3><p>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → Add project → name it <code>bcp-scorecard</code> → skip Analytics → Create.</p></div>
+  <div class="ob-card"><h3><span class="ob-num">2</span>Create Realtime Database</h3><p>Build → Realtime Database → Create Database → United States → Start in test mode → Enable.</p></div>
+  <div class="ob-card"><h3><span class="ob-num">3</span>Copy your database URL</h3><p>Looks like: <code>https://bcp-scorecard-xxxxx-default-rtdb.firebaseio.com</code></p></div>
+  <div style="margin-top:24px">
+    <div class="fg"><div class="fl">Firebase database URL</div><input type="url" id="setup-url" placeholder="https://your-project-default-rtdb.firebaseio.com"/></div>
+    <button class="btn btn-p" onclick="completeSetup()">Connect database</button>
+  </div>
+</div>
+
+<!-- Warrior registration -->
+<div id="reg-screen" class="screen">
+  <p class="ob-tag">BCP</p><h1 class="ob-title" id="reg-title">Your journey<br>starts here.</h1>
+  <div id="dojo-invite" style="display:none"><div class="invite-box"><p>Invited to join the dojo of</p><p id="sensei-name-display">—</p></div></div>
+  <p class="ob-sub" id="reg-sub">Create your warrior profile to begin tracking.</p>
+  <div class="fg"><div class="fl">Your warrior name</div><input type="text" id="reg-name" placeholder="e.g. Ingram" maxlength="30"/></div>
+  <div class="fg"><div class="fl">Program start date <em>Day 1 of your 60</em></div><input type="date" id="reg-start"/></div>
+  <button class="btn btn-p" onclick="registerWarrior()">Begin my 60-day transformation</button>
+</div>
+
+<!-- Main app -->
+<div id="main-screen" class="screen">
+  <div class="hdr">
+    <div class="hero">
+      <div><div class="hero-label">Total BCP — <span id="wname" style="color:var(--teal-l)"></span></div><div class="hero-bcp" id="hero-bcp">0</div></div>
+      <div><div class="hero-day" id="hero-day">Day —</div><div class="hero-date" id="hero-date"></div></div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-meta">Curriculum progress<span id="pct-lbl">—%</span></div>
+      <div class="prog"><div class="prog-fill" id="cur-bar" style="width:0%"></div></div>
+    </div>
+    <div class="badges" id="badge-row"><span class="badge ba" id="td-badge">+0 today</span></div>
+    <div class="tabs">
+      <button class="tab on" onclick="sw('today')">Today</button>
+      <button class="tab" onclick="sw('history')">History</button>
+      <button class="tab" onclick="sw('records')">Records</button>
+    </div>
+  </div>
+
+  <div id="p-today">
+    <!-- Sensei assignments card (shown when Sensei has dripped content) -->
+    <div id="sensei-assigns" style="display:none">
+      <div class="sensei-card" id="sc-card">
+        <div class="sensei-card-hdr">
+          <div class="sc-hdr-left">
+            <span class="sc-hdr-icon">📩</span>
+            <div><div class="sc-hdr-title">From your Sensei</div><div class="sc-hdr-name" id="sc-sensei-name"></div></div>
+          </div>
+          <span class="sc-hdr-count" id="sc-count">— tasks</span>
+        </div>
+        <div class="sc-items" id="sc-items-list"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Training</div>
+      <div class="f"><div class="fl2">Workout complete?</div><div class="tog-pair"><button class="tog" id="workout-n" onclick="tog('workout',false)">✕ No</button><button class="tog" id="workout-y" onclick="tog('workout',true)">✓ Yes</button></div></div>
+      <div class="f" id="wt-row" style="display:none"><div class="fl2">Workout start time <em>discipline metric</em></div><input type="text" placeholder="e.g. 6:30 AM" id="workoutTime" oninput="fld('workoutTime',this.value)"/></div>
+      <div class="f"><div class="fl2">Rest period (weekly) <em>target: 50s</em></div><div class="stp"><button class="sb" onclick="stp('restPeriod',-1,0)">−</button><input type="number" class="sv" id="restPeriod" placeholder="—" oninput="fld('restPeriod',this.value)"/><span class="su">s</span><button class="sb" onclick="stp('restPeriod',1,0)">+</button></div></div>
+      <div class="f" id="reps-row" style="display:none"><div class="fl2">Reps to failure <em>Wednesday</em></div><div class="stp"><button class="sb" onclick="stp('repsToFailure',-1,0)">−</button><input type="number" class="sv" id="repsToFailure" placeholder="—" oninput="fld('repsToFailure',this.value)"/><span class="su">reps</span><button class="sb" onclick="stp('repsToFailure',1,0)">+</button></div></div>
+      <div class="f" id="weight-row" style="display:none"><div class="fl2">Body weight <em>Friday weigh-in</em></div><div class="stp"><button class="sb" onclick="stp('bodyWeight',-0.5,0)">−</button><input type="number" class="sv" id="bodyWeight" step="0.5" placeholder="—" oninput="fld('bodyWeight',this.value)"/><span class="su">lbs</span><button class="sb" onclick="stp('bodyWeight',0.5,0)">+</button></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Nutrition</div>
+      <div class="f"><div class="fl2">Eating window (12pm–8pm)?</div><div class="tog-pair"><button class="tog" id="eatingWindow-n" onclick="tog('eatingWindow',false)">✕ No</button><button class="tog" id="eatingWindow-y" onclick="tog('eatingWindow',true)">✓ Yes</button></div></div>
+      <div class="f">
+        <div class="fl2">Daily protein <em>target: 160g</em></div>
+        <div class="stp"><button class="sb" onclick="stp('protein',-5,0);pb()">−</button><input type="number" class="sv" id="protein" placeholder="—" oninput="fld('protein',this.value);pb()"/><span class="su">g</span><button class="sb" onclick="stp('protein',5,0);pb()">+</button></div>
+        <div class="pbar"><div class="pbf" id="p-bar" style="width:0%"></div></div>
+        <div class="ptxt" id="p-lbl">0 / 160g</div>
+      </div>
+      <div class="f"><div class="fl2">First meal time <em>autophagy metric</em></div><input type="text" placeholder="e.g. 12:15 PM" id="firstMeal" oninput="fld('firstMeal',this.value)"/></div>
+      <div id="fri-nut" style="display:none">
+        <div class="div"></div>
+        <div class="f"><div class="fl2">Weekly sugar avg <em>Friday · target &lt;40g</em></div><div class="stp"><button class="sb" onclick="stp('sugarAvg',-1,0)">−</button><input type="number" class="sv" id="sugarAvg" placeholder="—" oninput="fld('sugarAvg',this.value)"/><span class="su">g/wk</span><button class="sb" onclick="stp('sugarAvg',1,0)">+</button></div></div>
+        <div class="f"><div class="fl2">Weekly calorie avg <em>Friday</em></div><div class="stp"><button class="sb" onclick="stp('calAvg',-50,0)">−</button><input type="number" class="sv" id="calAvg" placeholder="—" oninput="fld('calAvg',this.value)"/><span class="su">cal</span><button class="sb" onclick="stp('calAvg',50,0)">+</button></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Claude AI</div>
+      <div class="f"><div class="fl2">Hours saved today</div><div class="stp"><button class="sb" onclick="stp('claudeHours',-0.5,0)">−</button><input type="number" class="sv" id="claudeHours" step="0.5" placeholder="—" oninput="fld('claudeHours',this.value)"/><span class="su">hrs</span><button class="sb" onclick="stp('claudeHours',0.5,0)">+</button></div></div>
+      <div class="f"><div class="fl2">Curriculum task done?</div><div class="tog-pair"><button class="tog" id="curriculumDone-n" onclick="tog('curriculumDone',false)">✕ No</button><button class="tog" id="curriculumDone-y" onclick="tog('curriculumDone',true)">✓ Yes</button></div></div>
+    </div>
+
+    <div class="bcp-ft"><div class="bcp-ft-lbl">BCP earned today</div><div class="bcp-ft-val" id="td-bcp">+0</div></div>
+    <div class="sensei-footer" id="sensei-link" style="display:none"><a href="sensei.html">View your Sensei dashboard →</a></div>
+  </div>
+
+  <div id="p-history" style="display:none;padding-top:16px">
+    <div class="hist-legend"><div class="ld"><div class="dot" style="background:var(--green)"></div>Workout</div><div class="ld"><div class="dot" style="background:var(--teal-l)"></div>Window</div><div class="ld"><div class="dot" style="background:var(--amber)"></div>Curriculum</div></div>
+    <div id="hist-list"></div>
+  </div>
+
+  <div id="p-records" style="display:none;padding-top:16px">
+    <div class="card">
+      <div class="card-title">Personal records</div>
+      <div class="rec-row"><div><div class="rec-meta">Skills built</div><div class="rec-sub">+25 BCP each</div></div><div class="rec-right"><div class="rec-val" id="r-sk">5</div><button class="edit-btn" onclick="startEdit('skillsBuilt','Skills built','number')">Edit</button></div></div>
+      <div class="rec-row"><div><div class="rec-meta">Total hours saved</div><div class="rec-sub">+8 BCP per hour</div></div><div class="rec-right"><div class="rec-val" id="r-hr">2.5</div><button class="edit-btn" onclick="startEdit('totalHoursSaved','Total hours saved','number')">Edit</button></div></div>
+      <div class="rec-row"><div style="flex:1"><div class="rec-meta">Biggest single time save</div></div><div class="rec-right"><div class="rec-ts" id="r-ts">—</div><button class="edit-btn" onclick="startEdit('biggestTimeSave','Biggest time save','text')">Edit</button></div></div>
+    </div>
+    <div class="ie" id="ie-box" style="display:none"><div class="ie-lbl" id="ie-lbl">Edit</div><div class="ie-row"><input type="text" id="ie-inp" style="flex:1"/><button class="btn btn-p btn-sm" onclick="saveEdit()">Save</button><button class="btn btn-g btn-sm" onclick="cancelEdit()">✕</button></div></div>
+    <div class="card">
+      <div style="font-size:11px;color:var(--muted);letter-spacing:.5px;margin-bottom:14px">BCP breakdown</div>
+      <div id="brkdn"></div>
+      <div class="div"></div>
+      <div class="brk-row" style="color:var(--text)"><span style="font-weight:600">Total BCP</span><span style="font-family:var(--disp);font-size:30px;color:var(--amber)" id="r-tot">—</span></div>
+    </div>
+    <div class="reset-area"><button class="edit-btn" style="color:var(--coral);border-color:rgba(255,111,97,.3);font-size:12px" onclick="showReset()">Reset all data</button></div>
+    <div class="reset-confirm" id="rst-c" style="display:none">Are you sure? This deletes everything.<button class="edit-btn" onclick="resetAll()" style="color:var(--coral);border-color:rgba(255,111,97,.3);margin-left:8px">Yes, delete</button><button class="edit-btn" onclick="document.getElementById('rst-c').style.display='none'" style="margin-left:4px">Cancel</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DB_KEY='bcp_db_url',WID_KEY='bcp_warrior_id',SID_KEY='bcp_sensei_id';
+const urlP=new URLSearchParams(window.location.search),SENSEI_PARAM=urlP.get('sensei');
+const TODAY=new Date(),TDS=TODAY.toISOString().split('T')[0];
+const DOW=TODAY.getDay(),IS_WED=DOW===3,IS_FRI=DOW===5;
+const ICONS={task:'💪',lesson:'📖',message:'💬',challenge:'🎯',video:'🎥'};
+const BGCOLORS={task:'rgba(82,199,136,.12)',lesson:'rgba(255,183,77,.12)',message:'rgba(0,160,184,.12)',challenge:'rgba(255,111,97,.12)',video:'rgba(167,139,250,.12)'};
+
+let DB_URL='',WID='';
+let PROFILE={name:'',joinDate:TDS,senseiId:null};
+let D={},REC={skillsBuilt:5,totalHoursSaved:2.5,biggestTimeSave:'2 hrs → 2 min 30 sec'};
+let DAYS={},EDIT_F=null,SAVE_T=null;
+let SENSEI_ASSIGNS={},SENSEI_NAME='';
+
+function dayN(){const s=new Date((PROFILE.joinDate||'2026-04-21')+'T12:00:00');return Math.max(1,Math.min(60,Math.floor((TODAY-s)/86400000)+1));}
+function dayPct(){return Math.round(dayN()/60*100);}
+
+async function fbGet(p){try{const r=await fetch(`${DB_URL}/${p}.json`);return r.ok?await r.json():null;}catch{return null;}}
+async function fbPatch(p,d){try{await fetch(`${DB_URL}/${p}.json`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});}catch{toast('Save failed','err');}}
+async function fbSet(p,d){try{await fetch(`${DB_URL}/${p}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});}catch{toast('Save failed','err');}}
+function gid(p){return(p||'x')+'-'+Math.random().toString(36).slice(2,8);}
+
+function bcp(d){if(!d)return 0;let s=0;if(d.workout===true)s+=15;if(d.eatingWindow===true)s+=10;if(d.curriculumDone===true)s+=10;const p=parseFloat(d.protein)||0;if(p>=155)s+=15;else if(p>=130)s+=10;else if(p>=100)s+=5;const h=parseFloat(d.claudeHours)||0;if(h>0)s+=Math.min(Math.round(h*4),20);if(d.workoutTime)s+=3;if(d.firstMeal)s+=2;return s;}
+function totalBCP(){const dy=Object.values(DAYS).reduce((a,d)=>a+bcp(d),0);return dy+(REC.skillsBuilt||0)*25+Math.round((parseFloat(REC.totalHoursSaved)||0)*8);}
+
+function upd(){
+  const t=bcp(D),tot=totalBCP();
+  document.getElementById('hero-bcp').textContent=tot.toLocaleString();
+  document.getElementById('td-bcp').textContent='+'+t;
+  document.getElementById('td-badge').textContent='+'+t+' today';
+  document.getElementById('r-tot').textContent=tot.toLocaleString();
+  brkdn();
+}
+function brkdn(){
+  const dy=Object.values(DAYS).reduce((a,d)=>a+bcp(d),0);
+  const sk=(REC.skillsBuilt||0)*25,hr=Math.round((parseFloat(REC.totalHoursSaved)||0)*8);
+  const el=document.getElementById('brkdn');if(!el)return;
+  const row=(l,v)=>`<div class="brk-row"><span>${l}</span><span class="brk-val">+${v}</span></div>`;
+  el.innerHTML=row('Daily check-ins',dy)+row('Skills ('+REC.skillsBuilt+' × 25)',sk)+row('Hours saved ('+REC.totalHoursSaved+' × 8)',hr);
+}
+function pb(){const p=parseFloat(document.getElementById('protein')?.value)||0,pc=Math.min(100,Math.round(p/160*100)),bar=document.getElementById('p-bar'),lbl=document.getElementById('p-lbl');if(bar){bar.style.width=pc+'%';bar.style.background=pc>=100?'var(--green)':pc>=70?'var(--amber)':'var(--teal-l)';}if(lbl)lbl.textContent=p+' / 160g';}
+function toast(msg,type){const el=document.getElementById('toast');el.textContent=msg;el.className='toast show '+(type||'');clearTimeout(el._t);el._t=setTimeout(()=>el.className='toast',2200);}
+
+function tog(f,v){
+  D[f]=v;
+  ['y','n'].forEach(s=>{const el=document.getElementById(f+'-'+s);if(el)el.className='tog'+(v===true&&s==='y'?' y':v===false&&s==='n'?' n':'');});
+  if(f==='workout')document.getElementById('wt-row').style.display=v?'block':'none';
+  schedSave();
+}
+function fld(f,v){D[f]=v;schedSave();}
+function stp(f,delta,mn){const el=document.getElementById(f);if(!el)return;const v=Math.max(mn,Math.round(((parseFloat(el.value)||0)+delta)*10)/10);el.value=v;fld(f,String(v));}
+function schedSave(){clearTimeout(SAVE_T);SAVE_T=setTimeout(saveDay,700);}
+async function saveDay(){
+  toast('Saving…','saving');
+  await fbPatch('warriors/'+WID+'/days/'+TDS,D);
+  DAYS[TDS]={...D};upd();toast('Saved ✓','saved');
+}
+async function saveRec(){
+  await fbSet('warriors/'+WID+'/records',REC);
+  document.getElementById('r-sk').textContent=REC.skillsBuilt;document.getElementById('r-hr').textContent=REC.totalHoursSaved;document.getElementById('r-ts').textContent=REC.biggestTimeSave;
+  upd();toast('Updated ✓','saved');
+}
+function startEdit(f,label,type){EDIT_F=f;document.getElementById('ie-lbl').textContent=label;document.getElementById('ie-inp').type=type;document.getElementById('ie-inp').value=REC[f];document.getElementById('ie-box').style.display='block';document.getElementById('ie-inp').focus();}
+function saveEdit(){if(!EDIT_F)return;const v=document.getElementById('ie-inp').value;REC[EDIT_F]=EDIT_F==='biggestTimeSave'?v:(parseFloat(v)||0);document.getElementById('ie-box').style.display='none';EDIT_F=null;saveRec();}
+function cancelEdit(){document.getElementById('ie-box').style.display='none';EDIT_F=null;}
+
+function sw(name){
+  ['today','history','records'].forEach(t=>{document.getElementById('p-'+t).style.display=t===name?'block':'none';});
+  document.querySelectorAll('.tab').forEach((b,i)=>{b.className='tab'+(['today','history','records'][i]===name?' on':'');});
+  if(name==='history')rHist();if(name==='records'){brkdn();document.getElementById('ie-box').style.display='none';}
+}
+function rHist(){
+  const c=document.getElementById('hist-list');if(!c)return;
+  let html='';
+  for(let i=13;i>=0;i--){const d2=new Date();d2.setDate(d2.getDate()-i);const k=d2.toISOString().split('T')[0];const dy=DAYS[k],b=bcp(dy),isT=k===TDS;const lbl=d2.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});const dot=(c,a)=>`<div class="dot" style="background:${a?c:'var(--brd)'}"></div>`;const dots=dy?dot('var(--green)',dy.workout===true)+dot('var(--teal-l)',dy.eatingWindow===true)+dot('var(--amber)',dy.curriculumDone===true):dot('var(--brd)',false).repeat(3);html+=`<div class="hr${isT?' td':''}"><div><span class="hr-lbl">${lbl}</span>${isT?'<span class="hr-tag">today</span>':''}</div><div class="hr-right"><div class="hr-dots">${dots}</div><span class="hr-bcp" style="color:${b>0?'var(--amber)':'var(--muted)'}">${b>0?'+'+b:'—'}</span></div></div>`;}
+  c.innerHTML=html||'<p style="color:var(--muted);font-size:13px;padding:8px 0">No history yet.</p>';
+}
+function streak(field){let s=0;const d=new Date();for(let i=0;i<100;i++){const k=d.toISOString().split('T')[0];if(!DAYS[k]||DAYS[k][field]!==true)break;s++;d.setDate(d.getDate()-1);}return s;}
+function addBadge(cls,txt){const b=document.createElement('span');b.className='badge '+cls;b.textContent=txt;document.getElementById('badge-row').appendChild(b);}
+function restore(){
+  ['workout','eatingWindow','curriculumDone'].forEach(f=>{const v=D[f];if(v!==undefined){const y=document.getElementById(f+'-y'),n=document.getElementById(f+'-n');if(y)y.className='tog'+(v===true?' y':'');if(n)n.className='tog'+(v===false?' n':'');}});
+  ['workoutTime','protein','firstMeal','claudeHours','restPeriod','repsToFailure','bodyWeight','sugarAvg','calAvg'].forEach(f=>{const el=document.getElementById(f);if(el&&D[f]!=null)el.value=D[f];});
+  if(D.workout)document.getElementById('wt-row').style.display='block';pb();
+}
+function showReset(){document.getElementById('rst-c').style.display='block';}
+async function resetAll(){await fbSet('warriors/'+WID,null);DAYS={};D={};REC={skillsBuilt:5,totalHoursSaved:2.5,biggestTimeSave:'2 hrs → 2 min 30 sec'};restore();upd();document.getElementById('rst-c').style.display='none';toast('All data reset','saved');}
+
+// ── Sensei assignments ────────────────────────────────────────────────────────
+async function loadSenseiAssigns(){
+  if(!PROFILE.senseiId)return;
+  const[assigns,sp]=await Promise.all([fbGet('senseis/'+PROFILE.senseiId+'/assignments/'+WID+'/'+TDS),fbGet('senseis/'+PROFILE.senseiId+'/profile')]);
+  SENSEI_ASSIGNS=assigns||{};SENSEI_NAME=sp?.name||'Sensei';
+  renderSenseiAssigns();
+}
+function renderSenseiAssigns(){
+  const keys=Object.keys(SENSEI_ASSIGNS);
+  if(!keys.length){document.getElementById('sensei-assigns').style.display='none';return;}
+  document.getElementById('sensei-assigns').style.display='block';
+  document.getElementById('sc-sensei-name').textContent=SENSEI_NAME;
+  const total=keys.length,done=keys.filter(aid=>SENSEI_ASSIGNS[aid].completed).length;
+  const cnt=document.getElementById('sc-count');cnt.textContent=done+'/'+total+' done';
+  if(done===total&&total>0){cnt.classList.add('sc-hdr-done');}else{cnt.classList.remove('sc-hdr-done');}
+  document.getElementById('sc-items-list').innerHTML=keys.map(aid=>{
+    const item=SENSEI_ASSIGNS[aid];const ic=ICONS[item.type]||'📌';const bg=BGCOLORS[item.type]||'var(--surf)';const isDone=item.completed||D['done_'+aid];
+    return`<div class="sc-item${isDone?' done-item':''}">
+      <div class="sc-check${isDone?' checked':''}" onclick="toggleAssign('${aid}')">${isDone?'✓':''}</div>
+      <div class="sc-icon" style="background:${bg}">${ic}</div>
+      <div class="sc-info">
+        <div class="sc-title">${item.title||'Assignment'}</div>
+        ${item.body?`<div class="sc-body">${item.body}</div>`:''}
+        ${item.url?`<a href="${item.url}" target="_blank" class="sc-url">🔗 Open resource</a>`:''}
+        ${isDone?'<div class="sc-done-lbl">✓ Completed</div>':''}
+      </div>
+    </div>`;
+  }).join('');
+}
+async function toggleAssign(aid){
+  const item=SENSEI_ASSIGNS[aid];if(!item)return;
+  const isDone=item.completed||D['done_'+aid];
+  const newDone=!isDone;
+  SENSEI_ASSIGNS[aid].completed=newDone;
+  D['done_'+aid]=newDone;
+  await fbPatch('senseis/'+PROFILE.senseiId+'/assignments/'+WID+'/'+TDS+'/'+aid,{completed:newDone});
+  await fbPatch('warriors/'+WID+'/days/'+TDS,{['done_'+aid]:newDone});
+  DAYS[TDS]={...DAYS[TDS],...D};
+  renderSenseiAssigns();toast(newDone?'Task complete ✓':'Marked incomplete','saved');
+}
+
+// ── Setup / Registration ──────────────────────────────────────────────────────
+async function completeSetup(){
+  const url=(document.getElementById('setup-url').value||'').trim().replace(/\/$/,'');
+  if(!url.startsWith('https://')){toast('Please enter a valid Firebase URL','err');return;}
+  localStorage.setItem(DB_KEY,url);DB_URL=url;
+  document.getElementById('setup-screen').classList.remove('active');
+  await checkWarrior();
+}
+async function checkWarrior(){
+  WID=localStorage.getItem(WID_KEY)||'';
+  if(!WID){
+    if(SENSEI_PARAM){const sp=await fbGet('senseis/'+SENSEI_PARAM+'/profile');if(sp?.name){document.getElementById('sensei-name-display').textContent=sp.name;document.getElementById('dojo-invite').style.display='block';document.getElementById('reg-title').textContent='Join the dojo.';}}
+    document.getElementById('reg-start').value=TDS;
+    document.getElementById('ls').style.display='none';document.getElementById('reg-screen').classList.add('active');return;
+  }
+  await loadApp();
+}
+async function registerWarrior(){
+  const name=(document.getElementById('reg-name').value||'').trim();const startDate=document.getElementById('reg-start').value||TDS;
+  if(!name){toast('Please enter your warrior name','err');return;}
+  WID=name.toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,8)+'-'+Math.random().toString(36).slice(2,8);
+  PROFILE={name,joinDate:startDate,senseiId:SENSEI_PARAM||null};
+  localStorage.setItem(WID_KEY,WID);
+  await fbSet('warriors/'+WID+'/profile',PROFILE);
+  const old=await fbGet('bcp');
+  if(old){if(old.days)await fbSet('warriors/'+WID+'/days',old.days);if(old.records){REC=old.records;await fbSet('warriors/'+WID+'/records',REC);}}
+  else{await fbSet('warriors/'+WID+'/records',REC);}
+  if(SENSEI_PARAM)await fbPatch('senseis/'+SENSEI_PARAM+'/warriors/'+WID,{name,joinDate:startDate});
+  document.getElementById('reg-screen').classList.remove('active');
+  await loadApp();
+}
+async function loadApp(){
+  document.getElementById('ls').style.display='flex';
+  const prof=await fbGet('warriors/'+WID+'/profile');if(prof)PROFILE=prof;
+  const n=dayN(),p=dayPct();
+  document.getElementById('wname').textContent=PROFILE.name||'';
+  document.getElementById('hero-day').textContent='Day '+n+'/60';
+  document.getElementById('hero-date').textContent=TODAY.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('pct-lbl').textContent=p+'%';
+  document.getElementById('cur-bar').style.width=p+'%';
+  if(IS_WED)document.getElementById('reps-row').style.display='block';
+  if(IS_FRI){document.getElementById('weight-row').style.display='block';document.getElementById('fri-nut').style.display='block';}
+  const allData=await fbGet('warriors/'+WID);
+  if(allData){DAYS=allData.days||{};if(allData.records)REC=allData.records;if(DAYS[TDS])D=DAYS[TDS];}
+  // Migrate from old bcp/ path if no days found yet
+  if(!Object.keys(DAYS).length){
+    const old=await fbGet('bcp');
+    if(old){
+      if(old.days){DAYS=old.days;await fbSet('warriors/'+WID+'/days',old.days);}
+      if(old.records){REC=old.records;await fbSet('warriors/'+WID+'/records',old.records);}
+      if(DAYS[TDS])D=DAYS[TDS];
+      toast('History restored from previous data ✓','saved');
+    }
+  }
+  restore();
+  document.getElementById('r-sk').textContent=REC.skillsBuilt;document.getElementById('r-hr').textContent=REC.totalHoursSaved;document.getElementById('r-ts').textContent=REC.biggestTimeSave;
+  const ws=streak('workout'),es=streak('eatingWindow');
+  if(ws>1)addBadge('bg2',ws+'d workout streak');if(es>1)addBadge('bt',es+'d window streak');
+  upd();
+  // Load sensei assignments if connected
+  await loadSenseiAssigns();
+  const sid=localStorage.getItem(SID_KEY);if(sid)document.getElementById('sensei-link').style.display='block';
+  document.getElementById('ls').style.display='none';document.getElementById('main-screen').classList.add('active');
+}
+
+document.getElementById('ie-inp').addEventListener('keydown',e=>{if(e.key==='Enter')saveEdit();if(e.key==='Escape')cancelEdit();});
+
+async function init(){
+  DB_URL=localStorage.getItem(DB_KEY)||'';
+  if(!DB_URL){document.getElementById('ls').style.display='none';document.getElementById('setup-screen').classList.add('active');return;}
+  await checkWarrior();
+}
+init();
+</script>
+</body>
+</html>
