@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BCP Date Fix</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080F0B;--card:#131F15;--brd:#1C2E1F;--teal:#006B7A;--teal-l:#00A0B8;--amber:#FFB74D;--coral:#FF6F61;--green:#52C788;--text:#D0EAD8;--muted:#486055;--font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.wrap{width:100%;max-width:480px}
+.tag{font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:8px}
+h1{font-size:28px;font-weight:600;margin-bottom:8px;color:var(--text)}
+.sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--brd);border-radius:10px;padding:20px;margin-bottom:12px}
+.lbl{font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:8px}
+input{width:100%;background:#0E1810;border:1px solid var(--brd);color:var(--text);padding:11px 14px;border-radius:8px;font-family:var(--font);font-size:14px;outline:none;margin-bottom:4px}
+input:focus{border-color:var(--teal)}
+input::placeholder{color:var(--muted)}
+.hint{font-size:11px;color:var(--muted);margin-bottom:14px;font-family:var(--mono)}
+.btn{width:100%;padding:13px;border-radius:8px;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;border:none;margin-top:4px;transition:opacity .15s}
+.btn:active{opacity:.8}
+.btn-p{background:var(--teal);color:#fff}
+.btn-g{background:#0E1810;color:var(--muted);border:1px solid var(--brd);margin-top:8px}
+.log{background:#0E1810;border:1px solid var(--brd);border-radius:8px;padding:14px;margin-top:16px;max-height:300px;overflow-y:auto;display:none}
+.log-line{font-size:12px;font-family:var(--mono);padding:3px 0;border-bottom:1px solid #1C2E1F;display:flex;align-items:center;gap:8px}
+.log-line:last-child{border-bottom:none}
+.dot-ok{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+.dot-info{width:7px;height:7px;border-radius:50%;background:var(--teal-l);flex-shrink:0}
+.dot-warn{width:7px;height:7px;border-radius:50%;background:var(--amber);flex-shrink:0}
+.dot-err{width:7px;height:7px;border-radius:50%;background:var(--coral);flex-shrink:0}
+.result{padding:16px;border-radius:8px;margin-top:12px;display:none;font-size:14px;line-height:1.6}
+.result.ok{background:rgba(82,199,136,.12);border:1px solid rgba(82,199,136,.3);color:var(--green)}
+.result.err{background:rgba(255,111,97,.12);border:1px solid rgba(255,111,97,.3);color:var(--coral)}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--brd);border-top-color:var(--teal-l);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="tag">BCP Scorecard</p>
+  <h1>Fix date shift</h1>
+  <p class="sub">This tool moves your Firebase data back by 1 day to correct the UTC timezone bug. It reads your existing data, copies it to the correct dates, and removes the wrong ones.</p>
+
+  <div class="card">
+    <div class="lbl">Firebase database URL</div>
+    <input type="url" id="db-url" placeholder="https://your-project-default-rtdb.firebaseio.com"/>
+    <div class="hint" id="url-hint">Loading from your browser…</div>
+
+    <div class="lbl">Your warrior ID</div>
+    <input type="text" id="wid" placeholder="e.g. ingram-abc123"/>
+    <div class="hint" id="wid-hint">Loading from your browser…</div>
+
+    <button class="btn btn-p" onclick="runFix()">Fix my dates →</button>
+    <button class="btn btn-g" onclick="preview()">Preview changes first</button>
+  </div>
+
+  <div class="log" id="log"></div>
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+const DB_KEY='bcp_db_url', WID_KEY='bcp_warrior_id';
+
+// Pre-fill from localStorage
+window.onload=()=>{
+  const url=localStorage.getItem(DB_KEY)||'';
+  const wid=localStorage.getItem(WID_KEY)||'';
+  if(url){document.getElementById('db-url').value=url;document.getElementById('url-hint').textContent='✓ Found in browser storage';}
+  else{document.getElementById('url-hint').textContent='Not found — paste manually';}
+  if(wid){document.getElementById('wid').value=wid;document.getElementById('wid-hint').textContent='✓ Found: '+wid;}
+  else{document.getElementById('wid-hint').textContent='Not found — check localStorage or paste manually';}
+};
+
+function shiftDateBack(dateStr){
+  // Parse date as local, subtract 1 day
+  const[y,m,d]=dateStr.split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  dt.setDate(dt.getDate()-1);
+  return`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+}
+
+function log(msg,type='info'){
+  const el=document.getElementById('log');
+  el.style.display='block';
+  const types={ok:'dot-ok',info:'dot-info',warn:'dot-warn',err:'dot-err'};
+  el.innerHTML+=`<div class="log-line"><div class="${types[type]||'dot-info'}"></div><span>${msg}</span></div>`;
+  el.scrollTop=el.scrollHeight;
+}
+
+async function fbGet(url,path){
+  try{const r=await fetch(`${url}/${path}.json`);return r.ok?await r.json():null;}
+  catch(e){return null;}
+}
+async function fbSet(url,path,data){
+  try{await fetch(`${url}/${path}.json`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});}
+  catch(e){log('Write failed: '+path,'err');}
+}
+async function fbDel(url,path){
+  try{await fetch(`${url}/${path}.json`,{method:'DELETE'});}
+  catch(e){log('Delete failed: '+path,'err');}
+}
+
+async function getDays(dbUrl, wid){
+  // Try new path first, then old bcp/ path
+  let days=null;
+  let path='';
+  const newData=await fbGet(dbUrl,'warriors/'+wid+'/days');
+  if(newData&&Object.keys(newData).length){days=newData;path='warriors/'+wid+'/days';}
+  else{
+    const oldData=await fbGet(dbUrl,'bcp/days');
+    if(oldData&&Object.keys(oldData).length){days=oldData;path='bcp/days';}
+  }
+  return{days,path};
+}
+
+async function preview(){
+  const dbUrl=(document.getElementById('db-url').value||'').trim().replace(/\/$/,'');
+  const wid=(document.getElementById('wid').value||'').trim();
+  if(!dbUrl||!wid){alert('Please fill in both fields');return;}
+  document.getElementById('log').innerHTML='';
+  document.getElementById('result').style.display='none';
+  log('Connecting to Firebase…','info');
+  const{days,path}=await getDays(dbUrl,wid);
+  if(!days||!Object.keys(days).length){log('No data found at warriors/'+wid+'/days or bcp/days','err');return;}
+  log('Found data at: '+path,'ok');
+  log('Found '+Object.keys(days).length+' day(s) of data','info');
+  log('─────────────────────────────','info');
+  Object.keys(days).sort().forEach(date=>{
+    const newDate=shiftDateBack(date);
+    const d=days[date];
+    const habits=[d.workout?'✓ Workout':'',d.eatingWindow?'✓ Window':'',d.curriculumDone?'✓ Curriculum':''].filter(Boolean).join(' ');
+    log(`${date} → ${newDate}  ${habits||'(no habits logged)'}`,date===newDate?'warn':'ok');
+  });
+  log('─────────────────────────────','info');
+  log('Click "Fix my dates" to apply these changes','warn');
+}
+
+async function runFix(){
+  const dbUrl=(document.getElementById('db-url').value||'').trim().replace(/\/$/,'');
+  const wid=(document.getElementById('wid').value||'').trim();
+  if(!dbUrl||!wid){alert('Please fill in both fields');return;}
+  document.getElementById('log').innerHTML='';
+  document.getElementById('result').style.display='none';
+  const btn=document.querySelector('.btn-p');
+  btn.innerHTML='<span class="spin"></span>Running…';btn.disabled=true;
+  log('Connecting to Firebase…','info');
+  const{days,path}=await getDays(dbUrl,wid);
+  if(!days||!Object.keys(days).length){log('No data found — nothing to fix','err');btn.textContent='Fix my dates →';btn.disabled=false;return;}
+  log('Found '+Object.keys(days).length+' entries at '+path,'ok');
+  const dates=Object.keys(days).sort();
+  let fixed=0,skipped=0;
+  for(const date of dates){
+    const newDate=shiftDateBack(date);
+    if(date===newDate){log('Skipping '+date+' (already correct)','warn');skipped++;continue;}
+    log('Moving '+date+' → '+newDate,'info');
+    // Write to correct date
+    await fbSet(dbUrl,path+'/'+newDate,days[date]);
+    // Delete old wrong date
+    await fbDel(dbUrl,path+'/'+date);
+    log('✓ Done: '+newDate,'ok');
+    fixed++;
+  }
+  log('─────────────────────────────','info');
+  log('Fixed: '+fixed+' entries, Skipped: '+skipped,'ok');
+  // Show result
+  const res=document.getElementById('result');
+  res.style.display='block';
+  if(fixed>0){
+    res.className='result ok';
+    res.innerHTML='✓ '+fixed+' date'+(fixed>1?'s':'')+' corrected. Reload your scorecard and your history will show on the right days.';
+  } else {
+    res.className='result err';
+    res.innerHTML='Nothing was changed — all dates already look correct, or no data was found.';
+  }
+  btn.textContent='Fix my dates →';btn.disabled=false;
+}
+</script>
+</body>
+</html>
